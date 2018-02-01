@@ -1,8 +1,11 @@
 package homework;
 
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-public class DefaultMyList<T> implements MyList {
+public class DefaultMyList<T> implements MyList, Iterable<Object> {
 	private int size = 0;
 	private Object[] elementData = new Object[10];
 
@@ -71,7 +74,60 @@ public class DefaultMyList<T> implements MyList {
 
 	@Override
 	public String toString() {
-		return Arrays.toString(elementData);
+		StringBuilder sb = new StringBuilder("{");
+		for (int i = 0; i < size; i++) {
+			sb.append("[" + elementData[i].toString() + "]");
+			if (!(i == size - 1)) {
+				sb.append(", ");
+			}
+		}
+		sb.append("}");
+		return sb.toString();
+		// return Arrays.toString(elementData);
+	}
+
+	@Override
+	public java.util.Iterator<Object> iterator() {
+		return new IteratorImlp();
+	}
+
+	private class IteratorImlp implements Iterator<Object> {
+		private int cursor = 0;
+		private int lastReturned = -1;
+
+		@Override
+		public boolean hasNext() {
+			return cursor != size;
+		}
+
+		@Override
+		public Object next() {
+			try {
+				int i = cursor;
+				Object next = elementData[i];
+				lastReturned = i;
+				cursor++;
+				return next;
+			} catch (IndexOutOfBoundsException e) {
+				throw new NoSuchElementException();
+			}
+		}
+
+		@Override
+		public void remove() {
+			if (lastReturned < 0) {
+				throw new IllegalStateException();
+			}
+			try {
+				DefaultMyList.this.remove(elementData[lastReturned]);
+				if (lastReturned < cursor) {
+					cursor--;
+				}
+				lastReturned = -1;
+			} catch (IndexOutOfBoundsException e) {
+				throw new ConcurrentModificationException();
+			}
+		}
 	}
 
 }
